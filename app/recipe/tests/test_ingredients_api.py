@@ -33,7 +33,8 @@ class PrivateIngredientsAPITests(TestCase):
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
             email='test@londonappdev.com',
-            password='testpass'
+            password='testpass',
+            name='test'
         )
         self.client.force_authenticate(self.user)
 
@@ -53,7 +54,8 @@ class PrivateIngredientsAPITests(TestCase):
         """Test that only ingredients for authenticated user are returned"""
         user2 = get_user_model().objects.create_user(
             email='other@londonappdev.com',
-            password='testpass'
+            password='testpass',
+            name='other'
         )
         Ingredient.objects.create(user=user2, name='Vinegar')
 
@@ -64,3 +66,21 @@ class PrivateIngredientsAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], ingredient.name)
+
+    def test_create_ingredient_successful(self):
+        """Test creating a new ingredient"""
+        payload = {'name': 'Cabbage'}
+        self.client.post(INGREDIENTS_URL, payload)
+
+        exists = Ingredient.objects.filter(
+            user=self.user,
+            name=payload['name']
+        ).exists()
+        self.assertTrue(exists)
+
+    def test_create_ingredient_invalid(self):
+        """Test creating invalid ingredient fails"""
+        payload = {'name': ''}
+        res = self.client.post(INGREDIENTS_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
