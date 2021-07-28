@@ -3,3 +3,11 @@ docker-compose run app sh -c "django-admin.py startproject app ."
 
 # run test
 docker-compose run app sh -c "python manage.py test && flake8"
+
+# create superuser
+docker-compose run app sh -c "python manage.py createsuperuser"
+
+# create app. --rm remove the container after running the command
+docker-compose run --rm app sh -c "python manage.py startapp user"
+
+# remove the admin.py and migrations folder in user app folder because we will use the core app instead for that
